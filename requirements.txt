@@ -4,3 +4,4 @@ numpy
 spacy 
 beautifulsoup4
 gunicorn
+mlflow
