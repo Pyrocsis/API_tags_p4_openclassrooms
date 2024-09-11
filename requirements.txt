@@ -3,3 +3,4 @@ joblib
 numpy 
 spacy 
 beautifulsoup4
+gunicorn
