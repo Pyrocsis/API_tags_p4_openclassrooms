@@ -68,13 +68,10 @@ def load_mlflow_model(tag_type):
 
 
     # Load the model and PCA from MLflow
-    model = mlflow.sklearn.load_model(model_uri)
-    pca = mlflow.sklearn.load_model(pca_uri)
-
-
-
-    # Load the MLB from the downloaded file
-    mlb = joblib.load(mlb_artifact_path)
+    # Load the model, PCA, and MLB from binary files
+    model = joblib.load(model_uri)  # Load the binary model
+    pca = joblib.load(pca_uri)      # Load the PCA object
+    mlb = joblib.load(mlb_artifact_path)  # Load the MultiLabelBinarizer
 
     return model, mlb, pca
 
