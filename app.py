@@ -8,12 +8,183 @@ import re
 from bs4 import BeautifulSoup
 import spacy
 import os
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 # Create a Flask app
 app = Flask(__name__)
 
 import subprocess
 import spacy
+
+# Define the vectorizer directory
+vectorizer_save_path = "vectorizers"
+
+import pandas as pd
+import numpy as np
+import gensim
+import tensorflow_hub as hub
+import tensorflow as tf
+import gensim.downloader as api
+import os
+import shutil
+
+# S'assurer que TensorFlow utilise le GPU
+physical_devices = tf.config.list_physical_devices('GPU')
+if physical_devices:
+    try:
+        tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    except:
+        pass
+
+# Activer la précision mixte si supportée
+if tf.config.list_physical_devices('GPU'):
+    tf.keras.mixed_precision.set_global_policy('mixed_float16')
+
+
+
+# Fonction pour obtenir l'embedding USE
+def get_use_embedding(text, model):
+    """
+    Obtenir l'embedding Universal Sentence Encoder (USE) pour un texte donné.
+
+    Paramètres :
+    - text : Liste de tokens représentant le texte.
+    - model : Modèle USE.
+
+    Retourne :
+    - Embedding USE sous forme de vecteur numpy.
+    """
+    return model([' '.join(text)]).numpy()[0]  # Joindre les tokens en une seule chaîne de caractères
+
+# Fonction pour obtenir l'embedding Word2Vec
+def get_word2vec_embedding(text, model):
+    """
+    Obtenir l'embedding Word2Vec pour un texte donné.
+
+    Paramètres :
+    - text : Liste de tokens représentant le texte.
+    - model : Modèle Word2Vec.
+
+    Retourne :
+    - Embedding Word2Vec sous forme de vecteur numpy.
+    """
+    word_vectors = [model[word] for word in text if word in model]
+    if len(word_vectors) == 0:
+        return np.zeros(100)  # Supposons des vecteurs GloVe de 100 dimensions
+    return np.mean(word_vectors, axis=0)
+
+# Effacer le cache de TensorFlow Hub si nécessaire
+tfhub_cache_dir = os.path.expanduser('~/.cache/tfhub_modules')
+if os.path.exists(tfhub_cache_dir):
+    shutil.rmtree(tfhub_cache_dir)
+
+# Télécharger manuellement le modèle Universal Sentence Encoder (USE)
+use_model_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
+use_model_path = os.path.join(os.getcwd(), "universal-sentence-encoder")
+
+if not os.path.exists(use_model_path):
+    print("Téléchargement du modèle USE...")
+    os.makedirs(use_model_path)
+    tf.keras.utils.get_file(
+        fname=os.path.join(use_model_path, "use_model.tar.gz"),
+        origin=use_model_url + "?tf-hub-format=compressed"
+    )
+    shutil.unpack_archive(
+        os.path.join(use_model_path, "use_model.tar.gz"),
+        use_model_path
+    )
+
+
+
+# Helper function to load vectorizer by identifying the name
+def load_vectorizer_by_name(file_name):
+    vectorizer_map = {
+        'BoW': 'bow_vectorizer.pkl',
+        'TF-IDF': 'tfidf_vectorizer.pkl',
+        'Word2Vec': 'word2vec_model.pkl',
+        'Doc2Vec': 'doc2vec_model.pkl',
+        'USE': 'use_model',
+        'BERT': ('bert_tokenizer', 'bert_model')
+    }
+    
+    for key, value in vectorizer_map.items():
+        if key.lower() in file_name.lower():
+            if key == 'BERT':
+                tokenizer_path = os.path.join(vectorizer_save_path, value[0])
+                model_path = os.path.join(vectorizer_save_path, value[1])
+                return joblib.load(tokenizer_path), joblib.load(model_path)
+            else:
+                return joblib.load(os.path.join(vectorizer_save_path, value))
+    return None
+
+
+import joblib
+
+def load_mlflow_model(tag_type):
+    """
+    Load the model, PCA, MLB, and vectorizer for the specified tag_type (e.g., top_50 or top_15).
+    
+    Params:
+    - tag_type: The type of tag (e.g., 'top_50', 'top_15').
+    
+    Returns:
+    - model: The classification model.
+    - mlb: The MultiLabelBinarizer.
+    - pca: The PCA model.
+    - vectorizer: The vectorizer (TF-IDF in this case).
+    """
+
+    # Define paths based on the tag_type
+    model_path = f"model_{tag_type}.pkl"
+    pca_path = f"pca_{tag_type}.pkl"
+    mlb_path = f"mlb_{tag_type}.pkl"
+
+    # Load the models
+    model = joblib.load(model_path)
+    pca = joblib.load(pca_path)
+    mlb = joblib.load(mlb_path)
+
+    # Hardcoded to use TF-IDF for now
+    vectorizer_path = "vectorizers/tfidf_vectorizer.pkl"
+    vectorizer = joblib.load(vectorizer_path)
+
+    return model, mlb, pca, vectorizer
+
+
+
+def vectorize_sentence(sentence, feature_name, vectorizer):
+    """
+    Vectorizes the input sentence based on the feature_name and vectorizer.
+    
+    Params:
+    - sentence: The preprocessed tokens from the sentence.
+    - feature_name: The name of the feature used for vectorization (e.g., 'TF-IDF', 'BoW', etc.).
+    - vectorizer: The corresponding vectorizer to use for vectorization.
+    
+    Returns:
+    - vectorized_sentence: The vectorized sentence.
+    """
+    if feature_name == 'BoW':
+        # Bag of Words
+        return vectorizer.transform([' '.join(sentence)]).toarray()
+    
+    elif feature_name == 'TF-IDF':
+        # TF-IDF
+        return vectorizer.transform([' '.join(sentence)]).toarray()
+
+    elif feature_name == 'Word2Vec':
+        # Word2Vec
+        return np.mean([vectorizer[word] for word in sentence if word in vectorizer], axis=0).reshape(1, -1)
+    
+    elif feature_name == 'Doc2Vec':
+        # Doc2Vec
+        return vectorizer.infer_vector(sentence).reshape(1, -1)
+
+
+    elif feature_name == 'USE':
+        # USE embeddings
+        return get_use_embedding(sentence, vectorizer).reshape(1, -1)
+
+    else:
+        raise ValueError(f"Unknown feature name: {feature_name}")
 
 # Ensure the en_core_web_sm model is downloaded
 def download_spacy_model():
@@ -58,22 +229,7 @@ def process_sentence(sentence):
     processed_tokens = post_process_tokens(preprocessed_tokens)
     return processed_tokens
 
-# Function to dynamically load the best model, PCA, and MultiLabelBinarizer from MLflow
-def load_mlflow_model(tag_type):
-    client = MlflowClient()
 
-    model_uri = f"model_{tag_type}.pkl"
-    pca_uri = f"pca_{tag_type}.pkl"
-    mlb_artifact_path = f"mlb_{tag_type}.pkl"
-
-
-    # Load the model and PCA from MLflow
-    # Load the model, PCA, and MLB from binary files
-    model = joblib.load(model_uri)  # Load the binary model
-    pca = joblib.load(pca_uri)      # Load the PCA object
-    mlb = joblib.load(mlb_artifact_path)  # Load the MultiLabelBinarizer
-
-    return model, mlb, pca
 
 # API route to get predicted tags for a given sentence
 @app.route('/predict', methods=['POST'])
@@ -83,6 +239,8 @@ def predict_tags():
     tag_type = data.get('tag_type', 'top_15')  # Default to 'top_15'
     num_tags = int(data.get('num_tags', 10))  # Default to top 10 tags
 
+    feature_name="TF-IDF"
+    
     if not sentence:
         return jsonify({'error': 'No sentence provided'}), 400
 
@@ -94,14 +252,13 @@ def predict_tags():
 
     # Convert processed tokens into a format for PCA (e.g., embeddings or one-hot encoding)
     processed_vector = np.mean([nlp(token).vector for token in processed_tokens], axis=0).reshape(1, -1)
-
+    
     # Load the appropriate model, PCA, and MLB based on the tag_type
-    model, mlb, pca = load_mlflow_model(tag_type)
-    # Modèle TF-IDF
-    tfidf_vectorizer = TfidfVectorizer(analyzer=lambda x: x, max_features=50000)
-    tfidf_matrix = tfidf_vectorizer.fit_transform(processed_vector)
+    model, mlb, pca,vectorizer = load_mlflow_model(tag_type)
+
+    vectorize_sentence(processed_vector, feature_name, vectorizer)
     # Apply PCA to the processed vector
-    pca_vector = pca.transform(tfidf_matrix)
+    pca_vector = pca.transform(processed_vector)
 
     # Predict the tag probabilities
     predicted_probabilities = model.predict_proba(pca_vector)[0]
