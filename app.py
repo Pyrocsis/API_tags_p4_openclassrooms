@@ -8,7 +8,7 @@ import re
 from bs4 import BeautifulSoup
 import spacy
 import os
-
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 # Create a Flask app
 app = Flask(__name__)
 
@@ -97,7 +97,9 @@ def predict_tags():
 
     # Load the appropriate model, PCA, and MLB based on the tag_type
     model, mlb, pca = load_mlflow_model(tag_type)
-
+    # Modèle TF-IDF
+    tfidf_vectorizer = TfidfVectorizer(analyzer=lambda x: x, max_features=50000)
+    tfidf_matrix = tfidf_vectorizer.fit_transform(processed_vector)
     # Apply PCA to the processed vector
     pca_vector = pca.transform(processed_vector)
 
