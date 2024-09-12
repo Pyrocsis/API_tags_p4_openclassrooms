@@ -80,25 +80,6 @@ if not os.path.exists(use_model_path):
         use_model_path
     )
 
-
-
-# Helper function to load vectorizer by identifying the name
-def load_vectorizer_by_name(file_name):
-    vectorizer_map = {
-        'BoW': 'bow_vectorizer.pkl',
-        'TF-IDF': 'tfidf_vectorizer.pkl',
-        'Word2Vec': 'word2vec_model.pkl',
-        'Doc2Vec': 'doc2vec_model.pkl',
-        'USE': 'use_model'
-    }
-    
-    for key, value in vectorizer_map.items():
-        if key.lower() in file_name.lower():
-
-            return joblib.load(os.path.join(vectorizer_save_path, value))
-    return None
-
-
 import joblib
 
 def load_mlflow_model(tag_type):
