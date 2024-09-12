@@ -5,4 +5,4 @@ spacy==3.7.4
 beautifulsoup4
 gunicorn
 mlflow
-sklearn
+scikit-learn
