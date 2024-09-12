@@ -101,7 +101,7 @@ def predict_tags():
     tfidf_vectorizer = TfidfVectorizer(analyzer=lambda x: x, max_features=50000)
     tfidf_matrix = tfidf_vectorizer.fit_transform(processed_vector)
     # Apply PCA to the processed vector
-    pca_vector = pca.transform(processed_vector)
+    pca_vector = pca.transform(tfidf_matrix)
 
     # Predict the tag probabilities
     predicted_probabilities = model.predict_proba(pca_vector)[0]
