@@ -8,24 +8,18 @@ import re
 from bs4 import BeautifulSoup
 import spacy
 import os
-# Create a Flask app
-app = Flask(__name__)
 
 import subprocess
 import spacy
-
-# Define the vectorizer directory
-vectorizer_save_path = "vectorizers"
-
 import pandas as pd
 import numpy as np
-import gensim
-import tensorflow_hub as hub
 import tensorflow as tf
-import gensim.downloader as api
 import os
 import shutil
+vectorizer_save_path="vectorizers"
 
+# Create a Flask app
+app = Flask(__name__)
 # S'assurer que TensorFlow utilise le GPU
 physical_devices = tf.config.list_physical_devices('GPU')
 if physical_devices:
@@ -33,12 +27,6 @@ if physical_devices:
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
     except:
         pass
-
-# Activer la précision mixte si supportée
-if tf.config.list_physical_devices('GPU'):
-    tf.keras.mixed_precision.set_global_policy('mixed_float16')
-
-
 
 # Fonction pour obtenir l'embedding USE
 def get_use_embedding(text, model):
@@ -101,18 +89,13 @@ def load_vectorizer_by_name(file_name):
         'TF-IDF': 'tfidf_vectorizer.pkl',
         'Word2Vec': 'word2vec_model.pkl',
         'Doc2Vec': 'doc2vec_model.pkl',
-        'USE': 'use_model',
-        'BERT': ('bert_tokenizer', 'bert_model')
+        'USE': 'use_model'
     }
     
     for key, value in vectorizer_map.items():
         if key.lower() in file_name.lower():
-            if key == 'BERT':
-                tokenizer_path = os.path.join(vectorizer_save_path, value[0])
-                model_path = os.path.join(vectorizer_save_path, value[1])
-                return joblib.load(tokenizer_path), joblib.load(model_path)
-            else:
-                return joblib.load(os.path.join(vectorizer_save_path, value))
+
+            return joblib.load(os.path.join(vectorizer_save_path, value))
     return None
 
 
