@@ -1,41 +1,18 @@
 from flask import Flask, request, jsonify
 import numpy as np
-import mlflow
-import mlflow.sklearn
-from mlflow.tracking import MlflowClient
 import joblib
 import re
 from bs4 import BeautifulSoup
-import spacy
-import os
-# Create a Flask app
-app = Flask(__name__)
-
 import subprocess
 import spacy
+import os
+import shutil
+# Create a Flask app
+app = Flask(__name__)
 
 # Define the vectorizer directory
 vectorizer_save_path = "vectorizers"
 
-import pandas as pd
-import numpy as np
-import tensorflow_hub as hub
-import tensorflow as tf
-import gensim.downloader as api
-import os
-import shutil
-
-# S'assurer que TensorFlow utilise le GPU
-physical_devices = tf.config.list_physical_devices('GPU')
-if physical_devices:
-    try:
-        tf.config.experimental.set_memory_growth(physical_devices[0], True)
-    except:
-        pass
-
-# Activer la précision mixte si supportée
-if tf.config.list_physical_devices('GPU'):
-    tf.keras.mixed_precision.set_global_policy('mixed_float16')
 
 
 
@@ -70,26 +47,26 @@ def get_word2vec_embedding(text, model):
         return np.zeros(100)  # Supposons des vecteurs GloVe de 100 dimensions
     return np.mean(word_vectors, axis=0)
 
-# Effacer le cache de TensorFlow Hub si nécessaire
-tfhub_cache_dir = os.path.expanduser('~/.cache/tfhub_modules')
-if os.path.exists(tfhub_cache_dir):
-    shutil.rmtree(tfhub_cache_dir)
+# # Effacer le cache de TensorFlow Hub si nécessaire
+# tfhub_cache_dir = os.path.expanduser('~/.cache/tfhub_modules')
+# if os.path.exists(tfhub_cache_dir):
+#     shutil.rmtree(tfhub_cache_dir)
 
-# Télécharger manuellement le modèle Universal Sentence Encoder (USE)
-use_model_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
-use_model_path = os.path.join(os.getcwd(), "universal-sentence-encoder")
+# # Télécharger manuellement le modèle Universal Sentence Encoder (USE)
+# use_model_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
+# use_model_path = os.path.join(os.getcwd(), "universal-sentence-encoder")
 
-if not os.path.exists(use_model_path):
-    print("Téléchargement du modèle USE...")
-    os.makedirs(use_model_path)
-    tf.keras.utils.get_file(
-        fname=os.path.join(use_model_path, "use_model.tar.gz"),
-        origin=use_model_url + "?tf-hub-format=compressed"
-    )
-    shutil.unpack_archive(
-        os.path.join(use_model_path, "use_model.tar.gz"),
-        use_model_path
-    )
+# if not os.path.exists(use_model_path):
+#     print("Téléchargement du modèle USE...")
+#     os.makedirs(use_model_path)
+#     tf.keras.utils.get_file(
+#         fname=os.path.join(use_model_path, "use_model.tar.gz"),
+#         origin=use_model_url + "?tf-hub-format=compressed"
+#     )
+#     shutil.unpack_archive(
+#         os.path.join(use_model_path, "use_model.tar.gz"),
+#         use_model_path
+#     )
 
 
 
