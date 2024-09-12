@@ -1,18 +1,10 @@
 from flask import Flask, request, jsonify
 import numpy as np
-import mlflow
-import mlflow.sklearn
-from mlflow.tracking import MlflowClient
 import joblib
 import re
 from bs4 import BeautifulSoup
-import spacy
-import os
-
 import subprocess
 import spacy
-import pandas as pd
-import numpy as np
 import tensorflow as tf
 import os
 import shutil
