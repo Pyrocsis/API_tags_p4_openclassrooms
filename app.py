@@ -15,7 +15,8 @@ vectorizer_save_path = "vectorizers"
 
 
 
-
+def identity_function(x):
+    return x
 # Fonction pour obtenir l'embedding USE
 def get_use_embedding(text, model):
     """
