@@ -19,7 +19,6 @@ vectorizer_save_path = "vectorizers"
 
 import pandas as pd
 import numpy as np
-import gensim
 import tensorflow_hub as hub
 import tensorflow as tf
 import gensim.downloader as api
