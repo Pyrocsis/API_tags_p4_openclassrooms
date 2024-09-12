@@ -12,8 +12,24 @@ import os
 # Create a Flask app
 app = Flask(__name__)
 
-# Load the spaCy model
+import subprocess
+import spacy
+
+# Ensure the en_core_web_sm model is downloaded
+def download_spacy_model():
+    try:
+        spacy.load("en_core_web_sm")
+    except OSError:
+        print("Downloading en_core_web_sm model...")
+        subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
+        print("Download completed!")
+
+# Call the function to download the model if not present
+download_spacy_model()
+
+# Load the model for use
 nlp = spacy.load("en_core_web_sm")
+
 
 # Function to clean text
 def clean_text(text):
