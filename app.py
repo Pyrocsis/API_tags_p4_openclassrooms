@@ -116,6 +116,7 @@ def vectorize_sentence(sentence, feature_name, vectorizer):
     
     elif feature_name == 'TF-IDF':
         # TF-IDF
+        print(sentence)
         return vectorizer.transform([' '.join(sentence)]).toarray()
 
     elif feature_name == 'Word2Vec':
