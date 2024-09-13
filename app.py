@@ -206,7 +206,8 @@ def predict_tags():
 
     # Load the appropriate model, PCA, and MLB based on the tag_type
     model, mlb, pca,vectorizer = load_mlflow_model(tag_type,feature_name)
-
+    print(mlb.classes_)
+    print(len(mlb.classes_))
     processed_vector=vectorize_sentence(processed_tokens, feature_name, vectorizer)
     # Apply PCA to the processed vector
     pca_vector = pca.transform(processed_vector)
