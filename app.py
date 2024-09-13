@@ -222,7 +222,7 @@ def predict_tags():
     predicted_tags_binary = np.zeros_like(predicted_probabilities)
     predicted_tags_binary[top_indices] = 1
     predicted_tags_binary = np.array(predicted_tags_binary)
-
+    print(predicted_tags_binary)
     predicted_tags = mlb.inverse_transform([predicted_tags_binary])
 
     return jsonify({'predicted_tags': predicted_tags[0]})
