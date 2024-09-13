@@ -119,7 +119,7 @@ def load_mlflow_model(tag_type,feature_name):
     pca = joblib.load(pca_path)
     mlb = joblib.load(mlb_path)
     
-    if feature_name=='TF-IDF:
+    if feature_name=='TF-IDF':
         # Hardcoded to use TF-IDF for now
         vectorizer_path = "vectorizers/tfidf_vectorizer.pkl"
         vectorizer = custom_joblib_load(vectorizer_path)
