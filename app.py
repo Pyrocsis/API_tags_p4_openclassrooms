@@ -216,6 +216,8 @@ def predict_tags():
 
     # Get the indices of the top predicted tags
     top_indices = np.argsort(predicted_probabilities)[::-1][:num_tags]
+    predicted_tags_binary[top_indices] = 1
+    predicted_tags_binary = np.array(predicted_tags_binary)
 
     # Get the tags corresponding to the top indices
     predicted_tags_binary = np.zeros_like(predicted_probabilities)
