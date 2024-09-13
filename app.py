@@ -198,14 +198,16 @@ def predict_tags():
 
     if not processed_tokens:
         return jsonify({'error': 'No valid tokens extracted from the sentence.'}), 400
-
+    print(processed_tokens)
+    print(" ")
+    print(" ")
     # Convert processed tokens into a format for PCA (e.g., embeddings or one-hot encoding)
-    processed_vector = np.mean([nlp(token).vector for token in processed_tokens], axis=0).reshape(1, -1)
-    
+    # processed_vector = np.mean([nlp(token).vector for token in processed_tokens], axis=0).reshape(1, -1)
+
     # Load the appropriate model, PCA, and MLB based on the tag_type
     model, mlb, pca,vectorizer = load_mlflow_model(tag_type,feature_name)
 
-    vectorize_sentence(processed_vector, feature_name, vectorizer)
+    vectorize_sentence(processed_tokens, feature_name, vectorizer)
     # Apply PCA to the processed vector
     pca_vector = pca.transform(processed_vector)
 
