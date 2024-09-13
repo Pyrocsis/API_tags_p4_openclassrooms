@@ -15,8 +15,6 @@ vectorizer_save_path = "vectorizers"
 
 
 
-def identity_function(x):
-    return x
 
 import pickle
 
@@ -119,13 +117,11 @@ def load_mlflow_model(tag_type,feature_name):
     pca = joblib.load(pca_path)
     mlb = joblib.load(mlb_path)
     
-    if feature_name=='TF-IDF':
-        # Hardcoded to use TF-IDF for now
-        vectorizer_path = "vectorizers/tfidf_vectorizer.pkl"
-        vectorizer = custom_joblib_load(vectorizer_path)
-    else:
-        vectorizer_path = "vectorizers/"+vectorizer_map.get(feature_name)
-        vectorizer = custom_joblib_load(vectorizer_path)
+    def identity_function(x):
+        return x
+
+    vectorizer_path = "vectorizers/"+vectorizer_map.get(feature_name)
+    vectorizer = joblib.load(vectorizer_path)
         
 
     return model, mlb, pca, vectorizer
