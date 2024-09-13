@@ -19,6 +19,8 @@ vectorizer_save_path = "vectorizers"
 # Define identity_function
 def identity_function(x):
     return x
+# Ensure the function is in the global namespace
+globals()['identity_function'] = identity_function
 
 import pickle
 
