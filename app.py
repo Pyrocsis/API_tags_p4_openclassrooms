@@ -17,6 +17,20 @@ vectorizer_save_path = "vectorizers"
 
 def identity_function(x):
     return x
+
+import pickle
+
+# Custom Unpickler to make sure `identity_function` is available
+class CustomUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if name == 'identity_function':
+            return identity_function
+        return super().find_class(module, name)
+
+def custom_joblib_load(filename):
+    with open(filename, 'rb') as file:
+        return CustomUnpickler(file).load()
+
 # Fonction pour obtenir l'embedding USE
 def get_use_embedding(text, model):
     """
@@ -71,31 +85,10 @@ def get_word2vec_embedding(text, model):
 
 
 
-# Helper function to load vectorizer by identifying the name
-def load_vectorizer_by_name(file_name):
-    vectorizer_map = {
-        'BoW': 'bow_vectorizer.pkl',
-        'TF-IDF': 'tfidf_vectorizer.pkl',
-        'Word2Vec': 'word2vec_model.pkl',
-        'Doc2Vec': 'doc2vec_model.pkl',
-        'USE': 'use_model',
-        'BERT': ('bert_tokenizer', 'bert_model')
-    }
-    
-    for key, value in vectorizer_map.items():
-        if key.lower() in file_name.lower():
-            if key == 'BERT':
-                tokenizer_path = os.path.join(vectorizer_save_path, value[0])
-                model_path = os.path.join(vectorizer_save_path, value[1])
-                return joblib.load(tokenizer_path), joblib.load(model_path)
-            else:
-                return joblib.load(os.path.join(vectorizer_save_path, value))
-    return None
-
 
 import joblib
 
-def load_mlflow_model(tag_type):
+def load_mlflow_model(tag_type,feature_name):
     """
     Load the model, PCA, MLB, and vectorizer for the specified tag_type (e.g., top_50 or top_15).
     
@@ -108,7 +101,14 @@ def load_mlflow_model(tag_type):
     - pca: The PCA model.
     - vectorizer: The vectorizer (TF-IDF in this case).
     """
-
+    vectorizer_map = {
+        'BoW': 'bow_vectorizer.pkl',
+        'TF-IDF': 'tfidf_vectorizer.pkl',
+        'Word2Vec': 'word2vec_model.pkl',
+        'Doc2Vec': 'doc2vec_model.pkl',
+        'USE': 'use_model',
+        'BERT': ('bert_tokenizer', 'bert_model')
+    }
     # Define paths based on the tag_type
     model_path = f"model_{tag_type}.pkl"
     pca_path = f"pca_{tag_type}.pkl"
@@ -118,10 +118,15 @@ def load_mlflow_model(tag_type):
     model = joblib.load(model_path)
     pca = joblib.load(pca_path)
     mlb = joblib.load(mlb_path)
-
-    # Hardcoded to use TF-IDF for now
-    vectorizer_path = "vectorizers/tfidf_vectorizer.pkl"
-    vectorizer = joblib.load(vectorizer_path)
+    
+    if feature_name=='TF-IDF:
+        # Hardcoded to use TF-IDF for now
+        vectorizer_path = "vectorizers/tfidf_vectorizer.pkl"
+        vectorizer = custom_joblib_load(vectorizer_path)
+    else:
+        vectorizer_path = "vectorizers/"+vectorizer_map.get(feature_name)
+        vectorizer = custom_joblib_load(vectorizer_path)
+        
 
     return model, mlb, pca, vectorizer
 
@@ -231,7 +236,7 @@ def predict_tags():
     processed_vector = np.mean([nlp(token).vector for token in processed_tokens], axis=0).reshape(1, -1)
     
     # Load the appropriate model, PCA, and MLB based on the tag_type
-    model, mlb, pca,vectorizer = load_mlflow_model(tag_type)
+    model, mlb, pca,vectorizer = load_mlflow_model(tag_type,feature_name)
 
     vectorize_sentence(processed_vector, feature_name, vectorizer)
     # Apply PCA to the processed vector
