@@ -6,3 +6,4 @@ beautifulsoup4
 gunicorn
 mlflow
 scikit-learn
+cloudpickle
