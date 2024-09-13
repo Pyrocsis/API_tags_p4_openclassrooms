@@ -22,17 +22,17 @@ def identity_function(x):
 
 import pickle
 
-# Custom joblib load that handles the identity_function during unpickling
-class CustomUnpickler(numpy_pickle.NumpyUnpickler):
-    def find_class(self, module, name):
-        if name == 'identity_function':
-            return identity_function
-        return super().find_class(module, name)
+# # Custom joblib load that handles the identity_function during unpickling
+# class CustomUnpickler(numpy_pickle.NumpyUnpickler):
+#     def find_class(self, module, name):
+#         if name == 'identity_function':
+#             return identity_function
+#         return super().find_class(module, name)
 
-def custom_joblib_load(path):
-    # Open the file and pass it to the CustomUnpickler
-    with open(path, 'rb') as f:
-        return CustomUnpickler(f).load()
+# def custom_joblib_load(path):
+#     # Open the file and pass it to the CustomUnpickler
+#     with open(path, 'rb') as f:
+#         return CustomUnpickler(f).load()
 
 # Fonction pour obtenir l'embedding USE
 def get_use_embedding(text, model):
@@ -124,12 +124,15 @@ def load_mlflow_model(tag_type,feature_name):
     
     def identity_function(x):
         return x
-        
+    
     vectorizer_path = "vectorizers/"+vectorizer_map.get(feature_name)
-    if feature_name=='TF-IDF':
-        vectorizer = custom_joblib_load(vectorizer_path)
-    else:
-        vectorizer = joblib.load(vectorizer_path)
+    vectorizer = joblib.load(vectorizer_path)
+    
+    # vectorizer_path = "vectorizers/"+vectorizer_map.get(feature_name)
+    # if feature_name=='TF-IDF':
+    #     vectorizer = custom_joblib_load(vectorizer_path)
+    # else:
+    #     vectorizer = joblib.load(vectorizer_path)
         
 
     return model, mlb, pca, vectorizer
