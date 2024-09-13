@@ -7,34 +7,16 @@ import subprocess
 import spacy
 import os
 import shutil
-from joblib import numpy_pickle
-from custom_functions import identity_function
+import cloudpickle
+
 # Create a Flask app
 app = Flask(__name__)
 
 # Define the vectorizer directory
 vectorizer_save_path = "vectorizers"
 
-
-# # Define identity_function
-# def identity_function(x):
-#     return x
-# # Ensure the function is in the global namespace
-# globals()['identity_function'] = identity_function
-
 import pickle
 
-# # Custom joblib load that handles the identity_function during unpickling
-# class CustomUnpickler(numpy_pickle.NumpyUnpickler):
-#     def find_class(self, module, name):
-#         if name == 'identity_function':
-#             return identity_function
-#         return super().find_class(module, name)
-
-# def custom_joblib_load(path):
-#     # Open the file and pass it to the CustomUnpickler
-#     with open(path, 'rb') as f:
-#         return CustomUnpickler(f).load()
 
 # Fonction pour obtenir l'embedding USE
 def get_use_embedding(text, model):
@@ -66,29 +48,6 @@ def get_word2vec_embedding(text, model):
     if len(word_vectors) == 0:
         return np.zeros(100)  # Supposons des vecteurs GloVe de 100 dimensions
     return np.mean(word_vectors, axis=0)
-
-# # Effacer le cache de TensorFlow Hub si nécessaire
-# tfhub_cache_dir = os.path.expanduser('~/.cache/tfhub_modules')
-# if os.path.exists(tfhub_cache_dir):
-#     shutil.rmtree(tfhub_cache_dir)
-
-# # Télécharger manuellement le modèle Universal Sentence Encoder (USE)
-# use_model_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
-# use_model_path = os.path.join(os.getcwd(), "universal-sentence-encoder")
-
-# if not os.path.exists(use_model_path):
-#     print("Téléchargement du modèle USE...")
-#     os.makedirs(use_model_path)
-#     tf.keras.utils.get_file(
-#         fname=os.path.join(use_model_path, "use_model.tar.gz"),
-#         origin=use_model_url + "?tf-hub-format=compressed"
-#     )
-#     shutil.unpack_archive(
-#         os.path.join(use_model_path, "use_model.tar.gz"),
-#         use_model_path
-#     )
-
-
 
 
 import joblib
@@ -124,17 +83,15 @@ def load_mlflow_model(tag_type,feature_name):
     pca = joblib.load(pca_path)
     mlb = joblib.load(mlb_path)
     
-    def identity_function(x):
-        return x
+    # vectorizer_path = "vectorizers/"+vectorizer_map.get(feature_name)
+    # vectorizer = joblib.load(vectorizer_path)
     
     vectorizer_path = "vectorizers/"+vectorizer_map.get(feature_name)
-    vectorizer = joblib.load(vectorizer_path)
-    
-    # vectorizer_path = "vectorizers/"+vectorizer_map.get(feature_name)
-    # if feature_name=='TF-IDF':
-    #     vectorizer = custom_joblib_load(vectorizer_path)
-    # else:
-    #     vectorizer = joblib.load(vectorizer_path)
+    if feature_name=='TF-IDF':
+        with open(vectorizer_path, 'rb') as f:
+            vectorizer = cloudpickle.load(f)
+    else:
+        vectorizer = joblib.load(vectorizer_path)
         
 
     return model, mlb, pca, vectorizer
