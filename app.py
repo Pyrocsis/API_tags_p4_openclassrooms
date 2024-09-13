@@ -8,7 +8,7 @@ import spacy
 import os
 import shutil
 from joblib import numpy_pickle
-
+from custom_functions import identity_function
 # Create a Flask app
 app = Flask(__name__)
 
@@ -16,11 +16,11 @@ app = Flask(__name__)
 vectorizer_save_path = "vectorizers"
 
 
-# Define identity_function
-def identity_function(x):
-    return x
-# Ensure the function is in the global namespace
-globals()['identity_function'] = identity_function
+# # Define identity_function
+# def identity_function(x):
+#     return x
+# # Ensure the function is in the global namespace
+# globals()['identity_function'] = identity_function
 
 import pickle
 
