@@ -7,6 +7,8 @@ import subprocess
 import spacy
 import os
 import shutil
+from joblib import numpy_pickle
+
 # Create a Flask app
 app = Flask(__name__)
 
@@ -20,14 +22,15 @@ def identity_function(x):
 
 import pickle
 
-def custom_joblib_load(path):
-    # Create a custom unpickler to resolve the 'identity_function'
-    class CustomUnpickler(joblib.numpy_pickle.NumpyUnpickler):
-        def find_class(self, module, name):
-            if name == 'identity_function':
-                return identity_function
-            return super().find_class(module, name)
+# Custom joblib load that handles the identity_function during unpickling
+class CustomUnpickler(numpy_pickle.NumpyUnpickler):
+    def find_class(self, module, name):
+        if name == 'identity_function':
+            return identity_function
+        return super().find_class(module, name)
 
+def custom_joblib_load(path):
+    # Open the file and pass it to the CustomUnpickler
     with open(path, 'rb') as f:
         return CustomUnpickler(f).load()
 
