@@ -9,14 +9,13 @@ import os
 import shutil
 import cloudpickle
 
-# Create a Flask app
+# Créer une application Flask
 app = Flask(__name__)
 
-# Define the vectorizer directory
+# Définir le répertoire du vectorizer
 vectorizer_save_path = "vectorizers"
 
 import pickle
-
 
 # Fonction pour obtenir l'embedding USE
 def get_use_embedding(text, model):
@@ -46,24 +45,25 @@ def get_word2vec_embedding(text, model):
     """
     word_vectors = [model[word] for word in text if word in model]
     if len(word_vectors) == 0:
-        return np.zeros(100)  # Supposons des vecteurs GloVe de 100 dimensions
+        return np.zeros(100)  # Supposons des vecteurs Word2Vec de 100 dimensions
     return np.mean(word_vectors, axis=0)
 
 
 import joblib
 
-def load_mlflow_model(tag_type,feature_name):
+# Fonction pour charger le modèle, la PCA, MLB et le vectorizer en fonction du type d'étiquette (par exemple, top_50 ou top_15)
+def load_mlflow_model(tag_type, feature_name):
     """
-    Load the model, PCA, MLB, and vectorizer for the specified tag_type (e.g., top_50 or top_15).
+    Charger le modèle, PCA, MLB et le vectorizer pour le type d'étiquette spécifié (ex : top_50 ou top_15).
     
-    Params:
-    - tag_type: The type of tag (e.g., 'top_50', 'top_15').
+    Paramètres :
+    - tag_type : Le type d'étiquette (par exemple, 'top_50', 'top_15').
     
-    Returns:
-    - model: The classification model.
-    - mlb: The MultiLabelBinarizer.
-    - pca: The PCA model.
-    - vectorizer: The vectorizer (TF-IDF in this case).
+    Retourne :
+    - model : Le modèle de classification.
+    - mlb : Le MultiLabelBinarizer.
+    - pca : Le modèle PCA.
+    - vectorizer : Le vectorizer (TF-IDF dans ce cas).
     """
     vectorizer_map = {
         'BoW': 'bow_vectorizer.pkl',
@@ -73,42 +73,40 @@ def load_mlflow_model(tag_type,feature_name):
         'USE': 'use_model',
         'BERT': ('bert_tokenizer', 'bert_model')
     }
-    # Define paths based on the tag_type
+    # Définir les chemins en fonction du type d'étiquette
     model_path = f"model_{tag_type}.pkl"
     pca_path = f"pca_{tag_type}.pkl"
     mlb_path = f"mlb_{tag_type}.pkl"
 
-    # Load the models
+    # Charger les modèles
     model = joblib.load(model_path)
     pca = joblib.load(pca_path)
     mlb = joblib.load(mlb_path)
     
-    # vectorizer_path = "vectorizers/"+vectorizer_map.get(feature_name)
-    # vectorizer = joblib.load(vectorizer_path)
+    vectorizer_path = "vectorizers/" + vectorizer_map.get(feature_name)
     
-    vectorizer_path = "vectorizers/"+vectorizer_map.get(feature_name)
-    if feature_name=='TF-IDF':
+    # Charger le vectorizer TF-IDF avec cloudpickle
+    if feature_name == 'TF-IDF':
         with open(vectorizer_path, 'rb') as f:
             vectorizer = cloudpickle.load(f)
     else:
         vectorizer = joblib.load(vectorizer_path)
-        
-
+    
     return model, mlb, pca, vectorizer
 
 
-
+# Fonction pour vectoriser une phrase en fonction du feature_name et du vectorizer
 def vectorize_sentence(sentence, feature_name, vectorizer):
     """
-    Vectorizes the input sentence based on the feature_name and vectorizer.
+    Vectoriser la phrase en entrée en fonction du feature_name et du vectorizer.
     
-    Params:
-    - sentence: The preprocessed tokens from the sentence.
-    - feature_name: The name of the feature used for vectorization (e.g., 'TF-IDF', 'BoW', etc.).
-    - vectorizer: The corresponding vectorizer to use for vectorization.
+    Paramètres :
+    - sentence : Les tokens prétraités de la phrase.
+    - feature_name : Le nom de la fonctionnalité utilisée pour la vectorisation (par ex. 'TF-IDF', 'BoW', etc.).
+    - vectorizer : Le vectorizer correspondant à utiliser pour la vectorisation.
     
-    Returns:
-    - vectorized_sentence: The vectorized sentence.
+    Retourne :
+    - vectorized_sentence : La phrase vectorisée.
     """
     if feature_name == 'BoW':
         # Bag of Words
@@ -116,7 +114,6 @@ def vectorize_sentence(sentence, feature_name, vectorizer):
     
     elif feature_name == 'TF-IDF':
         # TF-IDF
-        print(sentence)
         return vectorizer.transform([' '.join(sentence)]).toarray()
 
     elif feature_name == 'Word2Vec':
@@ -127,109 +124,101 @@ def vectorize_sentence(sentence, feature_name, vectorizer):
         # Doc2Vec
         return vectorizer.infer_vector(sentence).reshape(1, -1)
 
-
     elif feature_name == 'USE':
-        # USE embeddings
+        # Embeddings USE
         return get_use_embedding(sentence, vectorizer).reshape(1, -1)
 
     else:
-        raise ValueError(f"Unknown feature name: {feature_name}")
+        raise ValueError(f"Nom de fonctionnalité inconnu : {feature_name}")
 
-# Ensure the en_core_web_sm model is downloaded
+# S'assurer que le modèle en_core_web_sm est téléchargé
 def download_spacy_model():
     try:
         spacy.load("en_core_web_sm")
     except OSError:
-        print("Downloading en_core_web_sm model...")
+        print("Téléchargement du modèle en_core_web_sm...")
         subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
-        print("Download completed!")
+        print("Téléchargement terminé !")
 
-# Call the function to download the model if not present
+# Appeler la fonction pour télécharger le modèle s'il n'est pas présent
 download_spacy_model()
 
-# Load the model for use
+# Charger le modèle pour l'utiliser
 nlp = spacy.load("en_core_web_sm")
 
-
-# Function to clean text
+# Fonction pour nettoyer le texte
 def clean_text(text):
     if not isinstance(text, str):
         return text
-    text = BeautifulSoup(text, "html.parser").get_text()
-    text = re.sub(r'\s+', ' ', text)
-    text = re.sub(r'[^\w\s]', '', text)
-    return text.lower()
+    text = BeautifulSoup(text, "html.parser").get_text()  # Supprimer les balises HTML
+    text = re.sub(r'\s+', ' ', text)  # Remplacer les espaces multiples par un seul espace
+    text = re.sub(r'[^\w\s]', '', text)  # Supprimer les caractères non alphanumériques
+    return text.lower()  # Convertir en minuscules
 
-# Function to preprocess text using spaCy
+# Fonction pour prétraiter le texte avec spaCy
 def preprocess_text_spacy(text):
     doc = nlp(text)
-    tokens = [token.lemma_ for token in doc if token.pos_ in {'NOUN', 'PROPN'}]
+    tokens = [token.lemma_ for token in doc if token.pos_ in {'NOUN', 'PROPN'}]  # Lemmatizer les noms et les noms propres
     return tokens
 
-# Function to remove single letters from tokens
+# Fonction pour supprimer les lettres seules des tokens
 def post_process_tokens(tokens):
-    processed_tokens = [token for token in tokens if len(token) > 1]
+    processed_tokens = [token for token in tokens if len(token) > 1]  # Supprimer les tokens d'une seule lettre
     return processed_tokens
 
-# Combined function to process a sentence
+# Fonction combinée pour traiter une phrase
 def process_sentence(sentence):
-    cleaned_text = clean_text(sentence)
-    preprocessed_tokens = preprocess_text_spacy(cleaned_text)
-    processed_tokens = post_process_tokens(preprocessed_tokens)
+    cleaned_text = clean_text(sentence)  # Nettoyer le texte
+    preprocessed_tokens = preprocess_text_spacy(cleaned_text)  # Appliquer le prétraitement spaCy
+    processed_tokens = post_process_tokens(preprocessed_tokens)  # Post-traiter les tokens
     return processed_tokens
 
 
-
-# API route to get predicted tags for a given sentence
+# Route API pour obtenir les étiquettes prédites pour une phrase donnée
 @app.route('/predict', methods=['POST'])
 def predict_tags():
-    data = request.get_json()
-    sentence = data.get('sentence', '')
-    tag_type = data.get('tag_type', 'top_15')  # Default to 'top_15'
-    num_tags = int(data.get('num_tags', 10))  # Default to top 10 tags
+    data = request.get_json()  # Récupérer les données JSON envoyées
+    sentence = data.get('sentence', '')  # Obtenir la phrase à traiter
+    tag_type = data.get('tag_type', 'top_15')  # Par défaut, utiliser 'top_15'
+    num_tags = int(data.get('num_tags', 10))  # Par défaut, retourner les 10 meilleures étiquettes
 
-    feature_name="TF-IDF"
+    feature_name = "TF-IDF"  # Utiliser TF-IDF par défaut
     
     if not sentence:
-        return jsonify({'error': 'No sentence provided'}), 400
+        return jsonify({'error': 'Aucune phrase fournie'}), 400  # Si la phrase est vide, retourner une erreur
 
-    # Process the sentence to obtain the feature vector
+    # Traiter la phrase pour obtenir le vecteur de caractéristiques
     processed_tokens = process_sentence(sentence)
 
     if not processed_tokens:
-        return jsonify({'error': 'No valid tokens extracted from the sentence.'}), 400
-    print(processed_tokens)
-    print(" ")
-    print(" ")
-    # Convert processed tokens into a format for PCA (e.g., embeddings or one-hot encoding)
-    # processed_vector = np.mean([nlp(token).vector for token in processed_tokens], axis=0).reshape(1, -1)
+        return jsonify({'error': 'Aucun token valide extrait de la phrase.'}), 400  # Si aucun token valide, retourner une erreur
 
-    # Load the appropriate model, PCA, and MLB based on the tag_type
-    model, mlb, pca,vectorizer = load_mlflow_model(tag_type,feature_name)
-    print(mlb.classes_)
-    print(len(mlb.classes_))
-    processed_vector=vectorize_sentence(processed_tokens, feature_name, vectorizer)
-    # Apply PCA to the processed vector
+    # Charger le modèle, la PCA et le vectorizer en fonction du type d'étiquette
+    model, mlb, pca, vectorizer = load_mlflow_model(tag_type, feature_name)
+    
+    # Vectoriser la phrase traitée
+    processed_vector = vectorize_sentence(processed_tokens, feature_name, vectorizer)
+    
+    # Appliquer la PCA au vecteur traité
     pca_vector = pca.transform(processed_vector)
 
-    # Predict the tag probabilities
+    # Prédire les probabilités des étiquettes
     predicted_probabilities = model.predict_proba(pca_vector)[0]
 
-    # Get the indices of the top predicted tags
+    # Obtenir les indices des étiquettes les mieux prédites
     top_indices = np.argsort(predicted_probabilities)[::-1][:num_tags]
 
-
-    # Get the tags corresponding to the top indices
+    # Obtenir les étiquettes correspondant aux meilleurs indices
     predicted_tags_binary = np.zeros_like(predicted_probabilities)
     predicted_tags_binary[top_indices] = 1
-    # Reshape predicted_tags_binary to be a 2D array
     predicted_tags_binary = predicted_tags_binary.reshape(1, -1)
-    predicted_tags_binary = np.asarray(predicted_tags_binary)
-    print(predicted_tags_binary)
-    print(type(predicted_tags_binary))
-    predicted_tags = mlb.inverse_transform(predicted_tags_binary)
-    print(predicted_tags)
-    return jsonify({'predicted_tags': predicted_tags[0]})
 
+    # Transformer en étiquettes inverses
+    predicted_tags = mlb.inverse_transform(predicted_tags_binary)
+    
+    return jsonify({'predicted_tags': predicted_tags[0]})  # Retourner les étiquettes prédites sous forme de JSON
+
+# Point d'entrée pour démarrer l'application Flask
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True)  # Démarrer l'application en mode débogage
+
