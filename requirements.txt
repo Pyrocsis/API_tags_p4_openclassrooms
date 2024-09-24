@@ -8,3 +8,4 @@ mlflow
 scikit-learn
 cloudpickle
 pytest
+flask-testing
