@@ -7,3 +7,4 @@ gunicorn
 mlflow
 scikit-learn
 cloudpickle
+pytest
