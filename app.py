@@ -199,6 +199,7 @@ def predict_tags():
     # Vectoriser la phrase traitée
     processed_vector = vectorize_sentence(processed_tokens, feature_name, vectorizer)
     print("Shape of vector : ", processed_vector.shape)
+    print("Shape of vector.T : ", processed_vector.T.shape)
     # Appliquer la PCA au vecteur traité
     pca_vector = pca.transform(processed_vector.T)
 
