@@ -222,3 +222,5 @@ def predict_tags():
 if __name__ == '__main__':
     app.run(debug=True)  # Démarrer l'application en mode débogage"# Test GitHub Actions trigger" 
 "# Test GitHub Actions trigger" 
+"# Test GitHub Actions trigger" 
+"# Test GitHub Actions trigger" 
