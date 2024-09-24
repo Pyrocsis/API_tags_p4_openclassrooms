@@ -200,7 +200,7 @@ def predict_tags():
     processed_vector = vectorize_sentence(processed_tokens, feature_name, vectorizer)
     print("Shape of vector : ", processed_vector.shape)
     # Appliquer la PCA au vecteur traité
-    pca_vector = pca.transform(processed_vector.T)
+    pca_vector = pca.transform(processed_vector)
 
     # Prédire les probabilités des étiquettes
     predicted_probabilities = model.predict_proba(pca_vector)[0]
