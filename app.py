@@ -221,3 +221,4 @@ def predict_tags():
 # Point d'entrée pour démarrer l'application Flask
 if __name__ == '__main__':
     app.run(debug=True)  # Démarrer l'application en mode débogage"# Test GitHub Actions trigger" 
+"# Test GitHub Actions trigger" 
