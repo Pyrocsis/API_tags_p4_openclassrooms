@@ -6,6 +6,6 @@ beautifulsoup4
 gunicorn
 mlflow
 scikit-learn
-cloudpickle
+cloudpickle==2.2.1
 pytest
 flask-testing
