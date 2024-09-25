@@ -1,11 +1,11 @@
 flask 
 joblib 
-numpy 
+numpy==1.26.3
 spacy==3.7.4
 beautifulsoup4
 gunicorn
 mlflow
-scikit-learn
+scikit-learn==1.5.0
 cloudpickle==2.2.1
 pytest
 flask-testing
