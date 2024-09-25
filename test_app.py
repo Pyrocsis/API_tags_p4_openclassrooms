@@ -1,7 +1,7 @@
 import pytest
 from app import app  # Importer l'application Flask
 import json
-
+import cloudpickle
 @pytest.fixture
 def client():
     app.config['TESTING'] = True  # Enable test mode
