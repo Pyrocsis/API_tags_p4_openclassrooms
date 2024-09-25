@@ -4,34 +4,41 @@ import json
 
 @pytest.fixture
 def client():
-    # Configurer l'application Flask en mode test
-    app.config['TESTING'] = True
+    app.config['TESTING'] = True  # Enable test mode
+    app.config['DEBUG'] = False  # Disable debug mode (optional)
     with app.test_client() as client:
         yield client
 
+
 def test_predict_tags_valid(client):
-    # Envoyer une requête POST valide à l'API
+    # Send a valid POST request to the API
     response = client.post('/predict', json={
         'sentence': 'This is a test sentence.',
         'tag_type': 'top_15',
         'num_tags': 5
     })
-    
-    # Vérifier que la réponse est OK (code HTTP 200)
+
+    # Check if the response status is OK
     assert response.status_code == 200
 
-    # Vérifier que les étiquettes prédites sont renvoyées
+    # Print response JSON for debugging
     data = response.get_json()
+    print("Response Data:", data)  # Add this for debugging
+
+    # Ensure 'predicted_tags' exists in the response
     assert 'predicted_tags' in data
 
 def test_predict_tags_no_sentence(client):
-    # Tester l'API avec une requête vide
+    # Test the API with an empty request
     response = client.post('/predict', json={})
-    
-    # Vérifier que la réponse est une erreur (code HTTP 400)
+
+    # Ensure the response status is an error (400)
     assert response.status_code == 400
 
-    # Vérifier que le message d'erreur est correct
+    # Print error response for debugging
     data = response.get_json()
+    print("Error Response Data:", data)  # Add this for debugging
+
+    # Ensure error message exists in the response
     assert 'error' in data
     assert data['error'] == 'Aucune phrase fournie'
