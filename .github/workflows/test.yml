@@ -26,9 +26,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Check if vectorizers folder exists and list contents
+      run: |
+        if [ -d "vectorizers" ]; then
+          echo "Listing vectorizers directory contents:"
+          ls -al vectorizers/
+        else
+          echo "Vectorizers folder does not exist."
+        fi
+
     - name: Run tests
       env:
         FLASK_ENV: 'testing'  # Add environment variable for Flask testing mode
       run: |
         pytest --maxfail=1 --disable-warnings
-
