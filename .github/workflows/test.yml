@@ -41,9 +41,10 @@ jobs:
           exit 1
         fi
 
-    - name: Install specific cloudpickle version
+    - name: Install specific cloudpickle and scikit learn version
       run: |
         pip install cloudpickle==2.2.1
+        pip install scikit-learn==1.5.0
 
     - name: Run tests with verbose output
       env:
