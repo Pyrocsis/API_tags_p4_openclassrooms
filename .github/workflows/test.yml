@@ -26,17 +26,27 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Check if vectorizers folder exists and list contents
+    - name: Check if vectorizers folder and files exist
       run: |
         if [ -d "vectorizers" ]; then
-          echo "Listing vectorizers directory contents:"
-          ls -al vectorizers/
+          echo "Vectorizers folder exists."
+          if [ -f "vectorizers/tfidf_vectorizer.pkl" ]; then
+            echo "TF-IDF Vectorizer found."
+          else
+            echo "TF-IDF Vectorizer not found!" >&2
+            exit 1
+          fi
         else
-          echo "Vectorizers folder does not exist."
+          echo "Vectorizers folder does not exist." >&2
+          exit 1
         fi
 
-    - name: Run tests
-      env:
-        FLASK_ENV: 'testing'  # Add environment variable for Flask testing mode
+    - name: Install specific cloudpickle version
       run: |
-        pytest --maxfail=1 --disable-warnings
+        pip install cloudpickle==2.2.1
+
+    - name: Run tests with verbose output
+      env:
+        FLASK_ENV: 'testing'
+      run: |
+        pytest --maxfail=1 --disable-warnings -v
