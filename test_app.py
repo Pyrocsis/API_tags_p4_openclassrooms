@@ -37,8 +37,8 @@ def test_request(client):
         "tag_type": "top_15",  
         "num_tags": 10    }   
 
-    response = client.post(url, json=data)
-    # response = requests.post(url, json=data)
+    # response = client.post(url, json=data)
+    response = requests.post(url, json=data)
 
     # Check if the response status is OK
     assert response.status_code == 200
