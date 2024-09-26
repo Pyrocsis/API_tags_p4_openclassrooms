@@ -13,8 +13,21 @@ def client():
 
 def test_predict_tags_valid(client):
     # Send a valid POST request to the API
+    sentence="""Good morning eveyone
+
+
+    i have this dataframe using:
+
+    data_T =[(folder, folder.split('/')[-2]) for folder in subfolders]
+
+    Can somebody help me to create this new dataframe and how i could use regex to look into description field if there is break line inside the field.
+
+    Thank you so much
+
+    Regards """
+
     response = client.post('/predict', json={
-        'sentence': 'This is a test sentence.',
+        'sentence': sentence,
         'tag_type': 'top_15',
         'num_tags': 5
     })
