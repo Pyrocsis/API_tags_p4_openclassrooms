@@ -16,8 +16,9 @@ def test_request(client):
 
 
     # The URL of the Flask API
-    url = 'https://api-project-4-tag-3c6eddb4da51.herokuapp.com/predict'
-
+    # url = 'https://api-project-4-tag-3c6eddb4da51.herokuapp.com/predict'
+    url = '/predict'
+    
     sentence="""Good morning eveyone
 
 
@@ -35,7 +36,7 @@ def test_request(client):
     data = {
         "sentence": sentence,
         "tag_type": "top_15",  
-        "num_tags": 10    }   
+        "num_tags": 5  }   
 
     response = client.post(url, json=data)
     # response = requests.post(url, json=data)
