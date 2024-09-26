@@ -44,7 +44,7 @@ def test_request(client):
     assert response.status_code == 200
 
     # Print response JSON for debugging
-    data = response.get_json()
+    data = response.json()
     print("Response Data:", data)  # Add this for debugging
 
     # Ensure 'predicted_tags' exists in the response
