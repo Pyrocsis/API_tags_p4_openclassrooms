@@ -16,9 +16,6 @@ vectorizer_save_path = "vectorizers"
 import pickle
 
 
-def identity_function(x):
-    return x
-
 # Fonction pour obtenir l'embedding USE
 def get_use_embedding(text, model):
     """
@@ -86,7 +83,6 @@ def load_mlflow_model(tag_type, feature_name):
     mlb = joblib.load(mlb_path)
     
     vectorizer_path = "vectorizers/" + vectorizer_map.get(feature_name)
-    # Charger le vectorizer TF-IDF avec cloudpickle
 
     
     # Charger le vectorizer TF-IDF avec cloudpickle
@@ -112,8 +108,7 @@ def vectorize_sentence(sentence, feature_name, vectorizer):
     Retourne :
     - vectorized_sentence : La phrase vectorisée.
     """
-    def identity_function(x):
-        return x
+
     if feature_name == 'BoW':
         # Bag of Words
         return vectorizer.transform([' '.join(sentence)]).toarray()
@@ -189,8 +184,7 @@ def predict_tags():
     num_tags = int(data.get('num_tags', 10))  # Par défaut, retourner les 10 meilleures étiquettes
 
     feature_name = "TF-IDF"  # Utiliser TF-IDF par défaut
-    def identity_function(x):
-        return x
+
     if not sentence:
         return jsonify({'error': 'Aucune phrase fournie'}), 400  # Si la phrase est vide, retourner une erreur
 
@@ -227,6 +221,6 @@ def predict_tags():
 
 # Point d'entrée pour démarrer l'application Flask
 if __name__ == '__main__':
-    # print("All ok")
+    print("All ok")
     app.run(debug=True)
 
