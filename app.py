@@ -8,7 +8,7 @@ import spacy
 import os
 import shutil
 import cloudpickle
-
+from utils import identity_function
 # Créer une application Flask
 app = Flask(__name__)
 
@@ -232,6 +232,6 @@ def predict_tags():
 
 # Point d'entrée pour démarrer l'application Flask
 if __name__ == '__main__':
-    print("All ok")
+    # print("All ok")
     app.run(debug=True)
 
