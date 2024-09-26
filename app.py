@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 import numpy as np
-import joblib
 import re
 from bs4 import BeautifulSoup
 import subprocess
@@ -8,7 +7,6 @@ import spacy
 import os
 import shutil
 import cloudpickle
-from utils import identity_function
 # Créer une application Flask
 app = Flask(__name__)
 
@@ -81,8 +79,7 @@ def load_mlflow_model(tag_type, feature_name):
     model_path = f"model_{tag_type}.pkl"
     pca_path = f"pca_{tag_type}.pkl"
     mlb_path = f"mlb_{tag_type}.pkl"
-    def identity_function(x):
-        return x
+
     # Charger les modèles
     model = joblib.load(model_path)
     pca = joblib.load(pca_path)
@@ -91,15 +88,13 @@ def load_mlflow_model(tag_type, feature_name):
     vectorizer_path = "vectorizers/" + vectorizer_map.get(feature_name)
     # Charger le vectorizer TF-IDF avec cloudpickle
 
-    vectorizer = joblib.load(vectorizer_path)
     
-    
-    # # Charger le vectorizer TF-IDF avec cloudpickle
-    # if feature_name == 'TF-IDF':
-    #     with open(vectorizer_path, 'rb') as f:
-    #         vectorizer = cloudpickle.load(f)
-    # else:
-    #     vectorizer = joblib.load(vectorizer_path)
+    # Charger le vectorizer TF-IDF avec cloudpickle
+    if feature_name == 'TF-IDF':
+        with open(vectorizer_path, 'rb') as f:
+            vectorizer = cloudpickle.load(f)
+    else:
+        vectorizer = joblib.load(vectorizer_path)
     
     return model, mlb, pca, vectorizer
 

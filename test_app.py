@@ -2,8 +2,7 @@ import pytest
 from app import app  # Importer l'application Flask
 import json
 import cloudpickle
-import joblib
-from utils import identity_function
+
 
 @pytest.fixture
 def client():
@@ -12,9 +11,6 @@ def client():
     with app.test_client() as client:
         yield client
 
-
-def identity_function(x):
-    return x
 def test_predict_tags_valid(client):
     # Send a valid POST request to the API
     response = client.post('/predict', json={
