@@ -14,7 +14,7 @@ Le pipeline ne contient pas de surveillance de **model drift** ou de **concept d
 
 ### Dossiers
 
-- **vectorizers/** : Ce dossier contient les fichiers liés aux **vectoriseurs** utilisés dans le projet, tels que **TF-IDF** et **BoW**, ainsi que les modèles **Word2Vec** et **Doc2Vec**. Ces fichiers sont générés et sauvegardés en local après le prétraitement des données textuelles.
+- **vectorizers/** : Ce dossier contient les fichiers liés aux **vectoriseurs** utilisés dans pour l'api projet, tels que **TF-IDF** pour la versoin actuelle . Ces fichiers sont générés et sauvegardés en local après le prétraitement des données textuelles.
 
 ### Fichiers Importants
 
